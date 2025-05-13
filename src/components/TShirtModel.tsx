@@ -1,7 +1,7 @@
 
 import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+// Create a simpler version without the specific OrbitControls import that requires additional setup
 
 const TShirtModel = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,13 +48,8 @@ const TShirtModel = () => {
     directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
 
-    // Controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.enableZoom = false;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 2;
+    // Simple rotation instead of OrbitControls
+    let rotationSpeed = 0.01;
 
     // Handle window resize
     const handleResize = () => {
@@ -70,7 +65,10 @@ const TShirtModel = () => {
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-      controls.update();
+      
+      // Rotate the t-shirt
+      tshirt.rotation.y += rotationSpeed;
+      
       renderer.render(scene, camera);
     };
 
