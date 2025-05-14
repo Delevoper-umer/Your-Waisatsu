@@ -7,6 +7,31 @@ const TShirtModel = () => {
 
   useEffect(() => {
     if (!containerRef.current) return;
+    
+    // Load saved model parameters from localStorage
+    let modelParams: any;
+    try {
+      const savedParams = localStorage.getItem('waisatsu-3d-model');
+      modelParams = savedParams ? JSON.parse(savedParams) : null;
+    } catch (error) {
+      console.error('Error loading 3D model params:', error);
+      modelParams = null;
+    }
+    
+    // Default parameters if none stored
+    if (!modelParams) {
+      modelParams = {
+        type: 'box',
+        color: '#ffffff',
+        rotationSpeed: 0.01,
+        geometry: {
+          width: 2,
+          height: 3,
+          depth: 0.2
+        },
+        shininess: 30
+      };
+    }
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -26,13 +51,39 @@ const TShirtModel = () => {
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create a simple t-shirt model (placeholder)
-    const geometry = new THREE.BoxGeometry(2, 3, 0.2);
+    // Create geometry based on selected type
+    let geometry;
+    switch (modelParams.type) {
+      case 'torus':
+        geometry = new THREE.TorusGeometry(
+          modelParams.geometry.radius || 1.5,
+          modelParams.geometry.tube || 0.5,
+          16, 
+          100
+        );
+        break;
+      case 'cylinder':
+        geometry = new THREE.CylinderGeometry(
+          modelParams.geometry.radiusTop || 1,
+          modelParams.geometry.radiusBottom || 1,
+          modelParams.geometry.height || 3,
+          32
+        );
+        break;
+      case 'box':
+      default:
+        geometry = new THREE.BoxGeometry(
+          modelParams.geometry.width || 2,
+          modelParams.geometry.height || 3,
+          modelParams.geometry.depth || 0.2
+        );
+        break;
+    }
     
     // Material with texture
     const material = new THREE.MeshPhongMaterial({
-      color: 0xffffff,
-      shininess: 30,
+      color: new THREE.Color(modelParams.color),
+      shininess: modelParams.shininess || 30,
     });
 
     const tshirt = new THREE.Mesh(geometry, material);
@@ -47,7 +98,7 @@ const TShirtModel = () => {
     scene.add(directionalLight);
 
     // Simple rotation instead of OrbitControls
-    let rotationSpeed = 0.01;
+    let rotationSpeed = modelParams.rotationSpeed || 0.01;
 
     // Handle window resize
     const handleResize = () => {
@@ -65,7 +116,9 @@ const TShirtModel = () => {
       requestAnimationFrame(animate);
       
       // Rotate the t-shirt
-      tshirt.rotation.y += rotationSpeed;
+      tshirt.rotation.x += modelParams.rotationX || 0;
+      tshirt.rotation.y += modelParams.rotationY || rotationSpeed;
+      tshirt.rotation.z += modelParams.rotationZ || 0;
       
       renderer.render(scene, camera);
     };
