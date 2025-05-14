@@ -1,7 +1,6 @@
 
 import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-// Create a simpler version without the specific OrbitControls import that requires additional setup
 
 const TShirtModel = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,7 +30,6 @@ const TShirtModel = () => {
     const geometry = new THREE.BoxGeometry(2, 3, 0.2);
     
     // Material with texture
-    const textureLoader = new THREE.TextureLoader();
     const material = new THREE.MeshPhongMaterial({
       color: 0xffffff,
       shininess: 30,
@@ -77,8 +75,17 @@ const TShirtModel = () => {
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (containerRef.current) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (containerRef.current && renderer.domElement) {
+        try {
+          containerRef.current.removeChild(renderer.domElement);
+        } catch (e) {
+          console.error("Could not remove renderer:", e);
+        }
+        
+        // Dispose of Three.js resources
+        geometry.dispose();
+        material.dispose();
+        renderer.dispose();
       }
     };
   }, []);
